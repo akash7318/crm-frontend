@@ -38,6 +38,7 @@ const Select: React.FC<SelectProps> = ({
       } ${className}`}
       value={selectedValue}
       onChange={handleChange}
+      title="Select Option"
     >
       {/* Placeholder option */}
       <option

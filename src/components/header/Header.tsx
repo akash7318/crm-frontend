@@ -60,6 +60,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           <button
             onClick={onClick}
             className="items-center justify-center hidden w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            aria-label="Toggle Sidebar"
           >
             <svg
               className="hidden fill-current lg:block"
@@ -94,6 +95,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           <button
             onClick={toggleApplicationMenu}
             className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+            title="Toggle Application Menu"
           >
             <svg
               width="24"
@@ -114,7 +116,10 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           <div className="hidden lg:block">
             <form action="https://formbold.com/s/unique_form_id" method="POST">
               <div className="relative">
-                <button className="absolute -translate-y-1/2 left-4 top-1/2">
+                <button
+                  className="absolute -translate-y-1/2 left-4 top-1/2"
+                  title="Search or type command..."
+                >
                   <svg
                     className="fill-gray-500 dark:fill-gray-400"
                     width="20"

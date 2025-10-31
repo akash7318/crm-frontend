@@ -185,6 +185,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                   }}
                   disabled={disabled}
                   className="w-5 h-5 text-gray-700 outline-hidden cursor-pointer focus:outline-hidden dark:text-gray-400 disabled:cursor-not-allowed"
+                  title="Toggle Dropdown"
                 >
                   <svg
                     className={`stroke-current transition-transform ${
