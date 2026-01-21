@@ -19,54 +19,92 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import PrivateRoute from "./private/PrivateRoute";
+import Permissions from "./pages/Settings/Permissions";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { checkIsLoggedIn } from "./features/auth/authSlice";
+import type { AppDispatch } from "./app/store";
+import EmployeeData from "./pages/Employees/EmployeeData";
+import ResetPassword from "./components/auth/ResetPassword";
 
 export default function App() {
-  return (
-    <>
-      <Router>
-        <ScrollToTop />
-        <Routes>
-          {/* Auth Layout */}
-          <Route index path="/" element={<SignIn />} />
+	const dispatch = useDispatch<AppDispatch>();
 
-          {/* Dashboard Layout */}
-          <Route element={<PrivateRoute />}>
-            <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Home />} />
+	useEffect(() => {
+		dispatch(checkIsLoggedIn()).unwrap();
+		return () => {};
+	}, [dispatch]);
 
-              {/* Others Page */}
-              <Route path="/profile" element={<UserProfiles />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/blank" element={<Blank />} />
+	const user = useSelector((state: any) => state.auth.user);
 
-              {/* Forms */}
-              <Route path="/form-elements" element={<FormElements />} />
+	return (
+		<>
+			<Router>
+				<ScrollToTop />
+				<Routes>
+					{/* Auth Layout */}
+					<Route index path="/" element={<SignIn />} />
 
-              {/* Tables */}
-              <Route path="/basic-tables" element={<BasicTables />} />
+					{/* Dashboard Layout */}
+					<Route element={<PrivateRoute />}>
+						<Route element={<AppLayout />}>
+							<Route path="/dashboard" element={<Home />} />
 
-              {/* Ui Elements */}
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/avatars" element={<Avatars />} />
-              <Route path="/badge" element={<Badges />} />
-              <Route path="/buttons" element={<Buttons />} />
-              <Route path="/images" element={<Images />} />
-              <Route path="/videos" element={<Videos />} />
+							{/* Others Page */}
+							<Route path="/profile" element={<UserProfiles />} />
+							<Route path="/calendar" element={<Calendar />} />
+							<Route path="/blank" element={<Blank />} />
 
-              {/* Charts */}
-              <Route path="/line-chart" element={<LineChart />} />
-              <Route path="/bar-chart" element={<BarChart />} />
-            </Route>
-          </Route>
+							{/* Employee */}
+							<Route path="/employees">
+								<Route path="" element={<SignUp />} />
+								<Route path="add" element={<EmployeeData />} />
+							</Route>
 
-          {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+							{/* Permissions */}
+							{user?.isAdmin && (
+								<Route
+									path="/permissions"
+									element={<Permissions />}
+								/>
+							)}
 
-          {/* Fallback Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </>
-  );
+							{/* Forms */}
+							<Route
+								path="/form-elements"
+								element={<FormElements />}
+							/>
+
+							{/* Tables */}
+							<Route
+								path="/basic-tables"
+								element={<BasicTables />}
+							/>
+
+							{/* Ui Elements */}
+							<Route path="/alerts" element={<Alerts />} />
+							<Route path="/avatars" element={<Avatars />} />
+							<Route path="/badge" element={<Badges />} />
+							<Route path="/buttons" element={<Buttons />} />
+							<Route path="/images" element={<Images />} />
+							<Route path="/videos" element={<Videos />} />
+
+							{/* Charts */}
+							<Route path="/line-chart" element={<LineChart />} />
+							<Route path="/bar-chart" element={<BarChart />} />
+						</Route>
+					</Route>
+
+					{/* Auth Layout */}
+					<Route path="/signup" element={<SignUp />} />
+
+					{/* Auth Layout */}
+					<Route path="/reset-password" element={<ResetPassword />} />
+
+					{/* Fallback Route */}
+					<Route path="*" element={<NotFound />} />
+				</Routes>
+			</Router>
+		</>
+	);
 }
