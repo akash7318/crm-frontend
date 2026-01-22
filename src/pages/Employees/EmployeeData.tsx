@@ -4,7 +4,7 @@ import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	DocsIcon,
 	EnvelopeIcon,
@@ -16,15 +16,14 @@ import {
 import DatePicker from "../../components/form/date-picker";
 import PhoneInput from "../../components/form/group-input/PhoneInput";
 import Button from "../../components/ui/button/Button";
+import axios from "../../config/axios";
 
 export default function EmployeeData() {
 	const [showPassword, setShowPassword] = useState(false);
-	const designations = [
-		{ value: "Floor Manager", label: "Floor Manager" },
-		{ value: "Manager", label: "Manager" },
-		{ value: "Team Leader", label: "Team Leader" },
-		{ value: "Executive", label: "Executive" },
-	];
+	const [designations, setDesignations] = useState([]);
+	const [isTeamSelectionResuired, setIsTeamSelectionResuired] =
+		useState(true);
+
 	const teams = [
 		{ value: "Floor Manager", label: "Floor Manager" },
 		{ value: "Manager", label: "Manager" },
@@ -37,8 +36,33 @@ export default function EmployeeData() {
 	};
 
 	const handleSelectChange = (value: string) => {
+		setIsTeamSelectionResuired(true);
+		// Id of Floor Manager
+		if (value === "69713c6ad1dfd8cfc7d5cc77") {
+			setIsTeamSelectionResuired(false);
+		}
 		console.log("Selected value:", value);
 	};
+
+	useEffect(() => {
+		(async () => {
+			const result = await axios.get("/designations");
+			if (!result?.data?.data) {
+				console.error(result);
+				return;
+			}
+
+			const resDesignations = result?.data?.data?.map(
+				(item: { _id: string; name: string }) => ({
+					value: item._id,
+					label: item.name,
+				})
+			);
+
+			setDesignations(resDesignations);
+		})();
+	}, []);
+
 	return (
 		<>
 			<PageMeta title="Create a new employee account" description="" />
@@ -82,9 +106,12 @@ export default function EmployeeData() {
 									</div>
 								</div>
 								<div>
-									<Label>Primary Phone*</Label>
+									<Label htmlFor="phone">
+										Primary Phone*
+									</Label>
 									<PhoneInput
 										type="number"
+										id="phone"
 										selectPosition="start"
 										countries={countries}
 										placeholder="00000 00000"
@@ -93,9 +120,12 @@ export default function EmployeeData() {
 									/>
 								</div>
 								<div>
-									<Label>Designation*</Label>
+									<Label htmlFor="designation">
+										Designation*
+									</Label>
 									<Select
 										options={designations}
+										id="designation"
 										placeholder="Select a designation"
 										onChange={handleSelectChange}
 										className="dark:bg-dark-900"
@@ -103,7 +133,7 @@ export default function EmployeeData() {
 									/>
 								</div>
 								<div>
-									<Label>Password*</Label>
+									<Label htmlFor="password">Password*</Label>
 									<div className="relative">
 										<Input
 											type={
@@ -112,6 +142,7 @@ export default function EmployeeData() {
 													: "password"
 											}
 											className="pl-[62px]"
+											id="password"
 											placeholder="Enter password"
 											required={true}
 										/>
@@ -135,13 +166,19 @@ export default function EmployeeData() {
 								</div>
 
 								<div>
-									<Label>Teams*</Label>
+									<Label htmlFor="teams">
+										Teams
+										{isTeamSelectionResuired ? "*" : ""}
+									</Label>
 									<Select
 										options={teams}
+										id="teams"
 										placeholder="Select a team"
 										onChange={handleSelectChange}
 										className="dark:bg-dark-900"
-										required={true}
+										required={
+											isTeamSelectionResuired ?? false
+										}
 									/>
 								</div>
 

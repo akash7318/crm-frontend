@@ -7,6 +7,7 @@ interface CountryCode {
 
 interface PhoneInputProps {
 	type?: "number" | "tel" | "text";
+	id?: string;
 	countries: CountryCode[];
 	placeholder?: string;
 	required?: boolean;
@@ -16,6 +17,7 @@ interface PhoneInputProps {
 
 const PhoneInput: React.FC<PhoneInputProps> = ({
 	type = "tel",
+	id,
 	countries,
 	placeholder = "+1 (555) 000-0000",
 	required = false,
@@ -94,6 +96,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 			{/* Input field */}
 			<input
 				type={type}
+				id={id}
 				value={phoneNumber}
 				onChange={handlePhoneNumberChange}
 				placeholder={placeholder}
