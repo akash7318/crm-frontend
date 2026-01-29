@@ -116,7 +116,7 @@ export default function UserDropdown() {
 							Account settings
 						</DropdownItem>
 					</li>
-					{user?.isAdmin && (
+					{/* {user?.isAdmin && (
 						<li>
 							<DropdownItem
 								onItemClick={closeDropdown}
@@ -142,7 +142,7 @@ export default function UserDropdown() {
 								Permissions
 							</DropdownItem>
 						</li>
-					)}
+					)} */}
 					<li>
 						<DropdownItem
 							onItemClick={closeDropdown}

@@ -17,32 +17,32 @@ import DatePicker from "../../components/form/date-picker";
 import PhoneInput from "../../components/form/group-input/PhoneInput";
 import Button from "../../components/ui/button/Button";
 import axios from "../../config/axios";
+import Alert from "../../components/ui/alert/Alert";
 
 export default function EmployeeData() {
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+	const [message, setMessage] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
-	const [designations, setDesignations] = useState([]);
+	const [designations, setDesignations] = useState<
+		{ value: string; label: string }[]
+	>([]);
+	const [teams, setTeams] = useState<{ value: string; label: string }[]>([]);
 	const [isTeamSelectionResuired, setIsTeamSelectionResuired] =
 		useState(true);
 
-	const teams = [
-		{ value: "Floor Manager", label: "Floor Manager" },
-		{ value: "Manager", label: "Manager" },
-		{ value: "Team Leader", label: "Team Leader" },
-		{ value: "Executive", label: "Executive" },
-	];
 	const countries = [{ code: "IN", label: "+91" }];
-	const handlePhoneNumberChange = (phoneNumber: string) => {
-		console.log("Updated phone number:", phoneNumber);
-	};
 
 	const handleSelectChange = (value: string) => {
 		setIsTeamSelectionResuired(true);
-		// Id of Floor Manager
-		if (value === "69713c6ad1dfd8cfc7d5cc77") {
-			setIsTeamSelectionResuired(false);
-		}
-		console.log("Selected value:", value);
+		designations.map((item) => {
+			if (item.value === value && item.label === "Manager") {
+				setIsTeamSelectionResuired(false);
+			}
+		});
 	};
+
+	const handleTeamSelectChange = () => {};
 
 	useEffect(() => {
 		(async () => {
@@ -58,10 +58,52 @@ export default function EmployeeData() {
 					label: item.name,
 				})
 			);
-
 			setDesignations(resDesignations);
+
+			const resultFetchAssignableLeaders = await axios.get(
+				"/designations/fetchAssignableLeaders"
+			);
+			if (!resultFetchAssignableLeaders?.data?.data) {
+				console.error(resultFetchAssignableLeaders);
+				return;
+			}
+
+			const fetchAssignableLeaders =
+				resultFetchAssignableLeaders?.data?.data?.map(
+					(item: { _id: string; name: string }) => ({
+						value: item._id,
+						label: item.name,
+					})
+				);
+
+			setTeams(fetchAssignableLeaders);
 		})();
 	}, []);
+
+	const submitHandler = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+
+		const form = e.target as HTMLFormElement;
+		const formData = new FormData(form);
+		const data = Object.fromEntries(formData.entries());
+
+		setMessage("");
+		setError("");
+
+		axios
+			.post("/users/create", data)
+			.then((res) => {
+				form.reset();
+				setMessage(res?.data?.message);
+				setLoading(false);
+			})
+			.catch((err) => {
+				setError(err?.response?.data?.message);
+				setLoading(false);
+				console.log(err);
+			});
+	};
 
 	return (
 		<>
@@ -70,7 +112,27 @@ export default function EmployeeData() {
 			<div className="grid grid-cols-1 gap-6">
 				<div className="space-y-6">
 					<ComponentCard title="Employee Information">
-						<form action="">
+						{message && (
+							<div className="space-y-5 sm:space-y-6">
+								<Alert
+									variant="success"
+									title="Employee Registration Successful"
+									message="An email containing login credentials has been sent to the employee, allowing access to the CRM dashboard."
+									showLink={false}
+								/>
+							</div>
+						)}
+						{error && (
+							<div className="space-y-5 sm:space-y-6">
+								<Alert
+									variant="error"
+									title="Employee Registration Failed"
+									message={error}
+									showLink={false}
+								/>
+							</div>
+						)}
+						<form onSubmit={submitHandler}>
 							<div className="grid grid-cols-1 gap-4 space-y-6 md:grid-cols-2">
 								<div>
 									<Label htmlFor="name">Name*</Label>
@@ -78,6 +140,7 @@ export default function EmployeeData() {
 										<Input
 											type="text"
 											id="name"
+											name="name"
 											className="pl-[62px]"
 											placeholder="Enter full name"
 											autofocus={true}
@@ -89,13 +152,12 @@ export default function EmployeeData() {
 									</div>
 								</div>
 								<div>
-									<Label htmlFor="email">
-										Primary Email*
-									</Label>
+									<Label htmlFor="email">Email*</Label>
 									<div className="relative">
 										<Input
 											type="email"
 											id="email"
+											name="primaryEmail"
 											className="pl-[62px]"
 											placeholder="Enter email"
 											required={true}
@@ -106,17 +168,15 @@ export default function EmployeeData() {
 									</div>
 								</div>
 								<div>
-									<Label htmlFor="phone">
-										Primary Phone*
-									</Label>
+									<Label htmlFor="phone">Phone*</Label>
 									<PhoneInput
 										type="number"
 										id="phone"
+										name="primaryPhone"
 										selectPosition="start"
 										countries={countries}
 										placeholder="00000 00000"
 										required={true}
-										onChange={handlePhoneNumberChange}
 									/>
 								</div>
 								<div>
@@ -126,6 +186,7 @@ export default function EmployeeData() {
 									<Select
 										options={designations}
 										id="designation"
+										name="designationId"
 										placeholder="Select a designation"
 										onChange={handleSelectChange}
 										className="dark:bg-dark-900"
@@ -143,6 +204,7 @@ export default function EmployeeData() {
 											}
 											className="pl-[62px]"
 											id="password"
+											name="password"
 											placeholder="Enter password"
 											required={true}
 										/>
@@ -172,9 +234,10 @@ export default function EmployeeData() {
 									</Label>
 									<Select
 										options={teams}
+										name="teamHeadId"
 										id="teams"
 										placeholder="Select a team"
-										onChange={handleSelectChange}
+										onChange={handleTeamSelectChange}
 										className="dark:bg-dark-900"
 										required={
 											isTeamSelectionResuired ?? false
@@ -185,6 +248,7 @@ export default function EmployeeData() {
 								<div>
 									<DatePicker
 										id="date-picker"
+										name="joiningDate"
 										label="Joining Date"
 										placeholder="Select a date"
 										onChange={(
@@ -206,8 +270,35 @@ export default function EmployeeData() {
 									size="sm"
 									variant="primary"
 									startIcon={<DocsIcon className="size-5" />}
+									disabled={loading}
 								>
-									Save
+									{loading ? (
+										<>
+											Saving...
+											<svg
+												className="w-5 h-5 ml-3 animate-spin text-white"
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+											>
+												<circle
+													className="opacity-25"
+													cx="12"
+													cy="12"
+													r="10"
+													stroke="currentColor"
+													strokeWidth="4"
+												></circle>
+												<path
+													className="opacity-75"
+													fill="currentColor"
+													d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+												></path>
+											</svg>
+										</>
+									) : (
+										"Save"
+									)}
 								</Button>
 							</div>
 						</form>

@@ -10,6 +10,7 @@ interface User {
 interface AuthState {
 	user: User | null;
 	loading: boolean;
+	initialized: boolean;
 	isResetPasswordOTPSent: boolean;
 	message: string | null;
 	error: string | null;
@@ -19,6 +20,7 @@ interface AuthState {
 const initialState: AuthState = {
 	user: null,
 	loading: false,
+	initialized: false,
 	isResetPasswordOTPSent: false,
 	message: null,
 	error: null,
@@ -144,14 +146,17 @@ const authSlice = createSlice({
 			.addCase(checkIsLoggedIn.pending, (state) => {
 				state.loading = true;
 				state.message = null;
+				state.initialized = false;
 			})
 			.addCase(checkIsLoggedIn.fulfilled, (state, action) => {
 				state.loading = false;
 				state.user = action.payload?.user;
+				state.initialized = true;
 			})
 			.addCase(checkIsLoggedIn.rejected, (state) => {
 				state.loading = false;
 				state.user = null;
+				state.initialized = true;
 			})
 
 			// Send Reset Password OTP

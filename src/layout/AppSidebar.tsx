@@ -17,12 +17,21 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
+import { useSelector } from "react-redux";
+import { filterNavItems } from "../utils/filterNavItems";
 
-type NavItem = {
+export type NavItem = {
 	name: string;
 	icon: React.ReactNode;
 	path?: string;
-	subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+	permission?: string;
+	subItems?: {
+		name: string;
+		path: string;
+		permission?: string;
+		pro?: boolean;
+		new?: boolean;
+	}[];
 };
 
 const navItems: NavItem[] = [
@@ -45,17 +54,22 @@ const navItems: NavItem[] = [
 	{
 		name: "Employees",
 		icon: <ListIcon />,
+		permission: "employee.view",
 		subItems: [
-			{ name: "Employee List", path: "/employees", pro: false },
+			{
+				name: "Employee List",
+				path: "/employees",
+				permission: "employee.view",
+			},
 			{
 				name: "Add Employee",
 				path: "/employees/add",
-				pro: false,
+				permission: "employee.create",
 			},
 			{
 				name: "Deleted Employees",
 				path: "/employees/deleted",
-				pro: false,
+				permission: "employee.delete",
 			},
 		],
 	},
@@ -112,9 +126,21 @@ const othersItems: NavItem[] = [
 	},
 ];
 
-const AppSidebar: React.FC = () => {
+// Wrapper component that handles the loading state
+const AppSidebarWithGuard: React.FC = () => {
+	const initialized = useSelector((state: any) => state.auth.initialized);
+
+	// Wait for auth initialization to complete before rendering sidebar
+	if (!initialized) return null;
+
+	return <AppSidebarContent />;
+};
+
+const AppSidebarContent: React.FC = () => {
 	const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
 	const location = useLocation();
+	const user = useSelector((state: any) => state.auth.user);
+	const userPermissions = user?.designation?.permissions;
 
 	const [openSubmenu, setOpenSubmenu] = useState<{
 		type: "main" | "others";
@@ -131,10 +157,14 @@ const AppSidebar: React.FC = () => {
 		[location.pathname]
 	);
 
+	const filteredNavItems = filterNavItems(navItems, userPermissions);
+	const filteredOtherItems = filterNavItems(othersItems, userPermissions);
+
 	useEffect(() => {
 		let submenuMatched = false;
 		["main", "others"].forEach((menuType) => {
-			const items = menuType === "main" ? navItems : othersItems;
+			const items =
+				menuType === "main" ? filteredNavItems : filteredOtherItems;
 			items.forEach((nav, index) => {
 				if (nav.subItems) {
 					nav.subItems.forEach((subItem) => {
@@ -389,7 +419,7 @@ const AppSidebar: React.FC = () => {
 									<HorizontaLDots className="size-6" />
 								)}
 							</h2>
-							{renderMenuItems(navItems, "main")}
+							{renderMenuItems(filteredNavItems, "main")}
 						</div>
 						<div className="">
 							<h2
@@ -405,7 +435,7 @@ const AppSidebar: React.FC = () => {
 									<HorizontaLDots />
 								)}
 							</h2>
-							{renderMenuItems(othersItems, "others")}
+							{renderMenuItems(filteredOtherItems, "others")}
 						</div>
 					</div>
 				</nav>
@@ -417,4 +447,4 @@ const AppSidebar: React.FC = () => {
 	);
 };
 
-export default AppSidebar;
+export default AppSidebarWithGuard;

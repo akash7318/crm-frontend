@@ -26,6 +26,9 @@ import { checkIsLoggedIn } from "./features/auth/authSlice";
 import type { AppDispatch } from "./app/store";
 import EmployeeData from "./pages/Employees/EmployeeData";
 import ResetPassword from "./components/auth/ResetPassword";
+import Forbidden from "./pages/Forbidden/Forbidden";
+import ProtectedRoute from "./private/ProtectedRoute";
+import Employees from "./pages/Employees/Employees";
 
 export default function App() {
 	const dispatch = useDispatch<AppDispatch>();
@@ -57,8 +60,22 @@ export default function App() {
 
 							{/* Employee */}
 							<Route path="/employees">
-								<Route path="" element={<SignUp />} />
-								<Route path="add" element={<EmployeeData />} />
+								<Route
+									path=""
+									element={
+										<ProtectedRoute permission="employee.view">
+											<Employees />
+										</ProtectedRoute>
+									}
+								/>
+								<Route
+									path="add"
+									element={
+										<ProtectedRoute permission="employee.add">
+											<EmployeeData />
+										</ProtectedRoute>
+									}
+								/>
 							</Route>
 
 							{/* Permissions */}
@@ -100,6 +117,9 @@ export default function App() {
 
 					{/* Auth Layout */}
 					<Route path="/reset-password" element={<ResetPassword />} />
+
+					{/* Forbidden Route */}
+					<Route path="/forbidden" element={<Forbidden />} />
 
 					{/* Fallback Route */}
 					<Route path="*" element={<NotFound />} />
