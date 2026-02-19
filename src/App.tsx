@@ -20,25 +20,22 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import PrivateRoute from "./private/PrivateRoute";
 import Permissions from "./pages/Settings/Permissions";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
-import { checkIsLoggedIn } from "./features/auth/authSlice";
-import type { AppDispatch } from "./app/store";
 import EmployeeData from "./pages/Employees/EmployeeData";
 import ResetPassword from "./components/auth/ResetPassword";
 import Forbidden from "./pages/Forbidden/Forbidden";
 import ProtectedRoute from "./private/ProtectedRoute";
 import Employees from "./pages/Employees/Employees";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "./app/store";
+import { useEffect } from "react";
+import { checkIsLoggedIn } from "./features/auth/authSlice";
 
 export default function App() {
 	const dispatch = useDispatch<AppDispatch>();
 
 	useEffect(() => {
-		dispatch(checkIsLoggedIn()).unwrap();
-		return () => {};
+		dispatch(checkIsLoggedIn());
 	}, [dispatch]);
-
-	const user = useSelector((state: any) => state.auth.user);
 
 	return (
 		<>
@@ -79,12 +76,14 @@ export default function App() {
 							</Route>
 
 							{/* Permissions */}
-							{user?.isAdmin && (
-								<Route
-									path="/permissions"
-									element={<Permissions />}
-								/>
-							)}
+							<Route
+								path="/permissions"
+								element={
+									<ProtectedRoute permission="*">
+										<Permissions />
+									</ProtectedRoute>
+								}
+							/>
 
 							{/* Forms */}
 							<Route

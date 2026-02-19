@@ -44,42 +44,6 @@ export default function EmployeeData() {
 
 	const handleTeamSelectChange = () => {};
 
-	useEffect(() => {
-		(async () => {
-			const result = await axios.get("/designations");
-			if (!result?.data?.data) {
-				console.error(result);
-				return;
-			}
-
-			const resDesignations = result?.data?.data?.map(
-				(item: { _id: string; name: string }) => ({
-					value: item._id,
-					label: item.name,
-				})
-			);
-			setDesignations(resDesignations);
-
-			const resultFetchAssignableLeaders = await axios.get(
-				"/designations/fetchAssignableLeaders"
-			);
-			if (!resultFetchAssignableLeaders?.data?.data) {
-				console.error(resultFetchAssignableLeaders);
-				return;
-			}
-
-			const fetchAssignableLeaders =
-				resultFetchAssignableLeaders?.data?.data?.map(
-					(item: { _id: string; name: string }) => ({
-						value: item._id,
-						label: item.name,
-					})
-				);
-
-			setTeams(fetchAssignableLeaders);
-		})();
-	}, []);
-
 	const submitHandler = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
@@ -91,7 +55,7 @@ export default function EmployeeData() {
 		setMessage("");
 		setError("");
 
-		axios
+		await axios
 			.post("/users/create", data)
 			.then((res) => {
 				form.reset();
@@ -103,7 +67,46 @@ export default function EmployeeData() {
 				setLoading(false);
 				console.log(err);
 			});
+		getTeamDesignations();
 	};
+
+	async function getTeamDesignations() {
+		const result = await axios.get("/designations");
+		if (!result?.data?.data) {
+			console.error(result);
+			return;
+		}
+
+		const resDesignations = result?.data?.data?.map(
+			(item: { _id: string; name: string }) => ({
+				value: item._id,
+				label: item.name,
+			})
+		);
+		setDesignations(resDesignations);
+
+		const resultFetchAssignableLeaders = await axios.get(
+			"/designations/fetchAssignableLeaders"
+		);
+		if (!resultFetchAssignableLeaders?.data?.data) {
+			console.error(resultFetchAssignableLeaders);
+			return;
+		}
+
+		const fetchAssignableLeaders =
+			resultFetchAssignableLeaders?.data?.data?.map(
+				(item: { _id: string; name: string }) => ({
+					value: item._id,
+					label: item.name,
+				})
+			);
+
+		setTeams(fetchAssignableLeaders);
+	}
+
+	useEffect(() => {
+		getTeamDesignations();
+	}, []);
 
 	return (
 		<>
